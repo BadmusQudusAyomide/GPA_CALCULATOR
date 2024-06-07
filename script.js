@@ -63,15 +63,18 @@ function calculateGPA() {
   for (const course of courses) {
     switch (course.grade) {
       case "A":
-        totalQualityPoints += 4 * course.unit;
+        totalQualityPoints += 5 * course.unit;
         break;
       case "B":
-        totalQualityPoints += 3 * course.unit;
+        totalQualityPoints += 4 * course.unit;
         break;
       case "C":
-        totalQualityPoints += 2 * course.unit;
+        totalQualityPoints += 3 * course.unit;
         break;
       case "D":
+        totalQualityPoints += 2 * course.unit;
+        break;
+      case "E":
         totalQualityPoints += 1 * course.unit;
         break;
       default:

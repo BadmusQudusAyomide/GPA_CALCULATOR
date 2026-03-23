@@ -13,6 +13,13 @@
         <h1>GPA Calculator</h1>
         <form id="course-form">
             <div class="course-row">
+                <label for="grading-scale">Grading Scale:</label>
+                <select id="grading-scale">
+                    <option value="5">Nigeria 5.0 Scale</option>
+                    <option value="4">Nigeria 4.0 Scale</option>
+                </select>
+            </div>
+            <div class="course-row">
                 <label for="course-name">Course Name:</label>
                 <input type="text" id="course-name" placeholder="Enter your course name">
             </div>
@@ -34,6 +41,9 @@
             <button type="submit" id="add-course">Add Course</button>
         </form>
         <ul id="courses-list"></ul>
+        <div id="scale-guide">
+            <p id="scale-description">5.0 scale: A=5, B=4, C=3, D=2, E=1, F=0</p>
+        </div>
         <div id="result">
             <p>GPA: <span id="gpa"></span></p>
         </div>

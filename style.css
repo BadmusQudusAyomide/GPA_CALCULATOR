@@ -7,6 +7,13 @@ body {
     align-items: center;
     min-height: 100vh;
     background-color: #f5f5f5;
+    box-sizing: border-box;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: inherit;
 }
 
 .container {
@@ -14,7 +21,7 @@ body {
     border-radius: 5px;
     padding: 30px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    width: 500px;
+    width: min(500px, 100%);
     max-width: 100%;
     /* Responsive for smaller screens */
 }
@@ -34,6 +41,7 @@ h1 {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 12px;
     /* Align labels and inputs horizontally */
 }
 
@@ -45,6 +53,7 @@ h1 {
 #course-form input,
 #course-form select {
     flex: 1;
+    min-width: 0;
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 5px;
@@ -71,19 +80,32 @@ h1 {
     margin-top: 20px;
 }
 
+#scale-guide {
+    margin-top: 20px;
+    padding: 12px;
+    border-radius: 5px;
+    background-color: #f0f7f1;
+    color: #234127;
+}
+
 #courses-list li {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
+    gap: 12px;
+    flex-wrap: wrap;
     margin-bottom: 10px;
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 5px;
+    overflow-wrap: anywhere;
 }
 
 #courses-list li span.remove {
     cursor: pointer;
     color: red;
+    margin-left: auto;
+    flex-shrink: 0;
 }
 
 #result {
@@ -95,13 +117,41 @@ h1 {
 /* Mobile responsiveness */
 
 @media only screen and (max-width: 600px) {
+    body {
+        padding: 12px;
+        align-items: flex-start;
+    }
+
     .container {
+        width: 100%;
+        padding: 20px 16px;
+    }
+
+    h1 {
+        font-size: 1.5rem;
+    }
+
+    .course-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 6px;
+    }
+
+    #course-form label {
+        margin-bottom: 0;
+    }
+
+    #add-course {
         width: 100%;
     }
 
-    #course-form label,
-    #course-form input,
-    #course-form select {
-        width: 100%;
+    #courses-list li {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    #courses-list li span.remove {
+        margin-left: 0;
+        align-self: flex-end;
     }
 }

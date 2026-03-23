@@ -1,85 +1,129 @@
 const courseForm = document.getElementById("course-form");
 const courseList = document.getElementById("courses-list");
 const gpaSpan = document.getElementById("gpa");
+const gradingScaleSelect = document.getElementById("grading-scale");
+const scaleDescription = document.getElementById("scale-description");
 
 let courses = [];
+let gradingScale = "5";
 
-// Load courses from cookies on page load
-function loadCourses() {
+const GRADE_POINTS = {
+  "5": { A: 5, B: 4, C: 3, D: 2, E: 1, F: 0 },
+  "4": { A: 4, B: 3, C: 2, D: 1, E: 0, F: 0 },
+};
+
+function getStoredData() {
   const cookieData = document.cookie
     .split(";")
-    .find((cookie) => cookie.startsWith("courses="));
-  if (cookieData) {
-    courses = JSON.parse(cookieData.split("=")[1]);
+    .map((cookie) => cookie.trim())
+    .find((cookie) => cookie.startsWith("gpaData="));
+
+  if (!cookieData) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(decodeURIComponent(cookieData.split("=")[1]));
+  } catch (error) {
+    return null;
   }
 }
 
-loadCourses();
+function loadSavedData() {
+  const savedData = getStoredData();
 
-// Function to add a new course
+  if (!savedData) {
+    return;
+  }
+
+  if (savedData.gradingScale === "4" || savedData.gradingScale === "5") {
+    gradingScale = savedData.gradingScale;
+  }
+
+  if (!Array.isArray(savedData.courses)) {
+    return;
+  }
+
+  courses = savedData.courses
+    .filter(
+      (course) =>
+        course &&
+        typeof course.name === "string" &&
+        typeof course.grade === "string" &&
+        Number.isFinite(Number(course.unit)) &&
+        Number(course.unit) > 0
+    )
+    .map((course) => ({
+      name: course.name.trim(),
+      grade: course.grade,
+      unit: Number(course.unit),
+    }));
+}
+
+function updateScaleDescription() {
+  const descriptions = {
+    "5": "5.0 scale: A=5, B=4, C=3, D=2, E=1, F=0",
+    "4": "4.0 scale: A=4, B=3, C=2, D=1, E=0, F=0",
+  };
+
+  scaleDescription.textContent = descriptions[gradingScale];
+}
+
+function saveCourses() {
+  const savedData = encodeURIComponent(
+    JSON.stringify({ courses, gradingScale })
+  );
+  document.cookie = `gpaData=${savedData}; path=/; max-age=31536000; SameSite=Lax`;
+}
+
 function addCourse(event) {
-  event.preventDefault(); // Prevent default form submission behavior
+  event.preventDefault();
 
   const courseName = document.getElementById("course-name").value.trim();
   const courseGrade = document.getElementById("course-grade").value;
-  const courseUnit = parseInt(document.getElementById("course-unit").value);
+  const courseUnit = Number.parseInt(
+    document.getElementById("course-unit").value,
+    10
+  );
 
   if (!courseName) {
-    alert("Please enter a course name!");
+    alert("Please enter a course name.");
     return;
   }
 
-  if (isNaN(courseUnit) || courseUnit <= 0) {
-    alert("Please enter a valid course unit (positive number)!");
+  if (Number.isNaN(courseUnit) || courseUnit <= 0) {
+    alert("Please enter a valid course unit.");
     return;
   }
 
-  const newCourse = { name: courseName, grade: courseGrade, unit: courseUnit };
-  courses.push(newCourse);
+  courses.push({ name: courseName, grade: courseGrade, unit: courseUnit });
 
   renderCourses();
   saveCourses();
 
-  document.getElementById("course-name").value = ""; // Clear input fields after adding
+  document.getElementById("course-name").value = "";
   document.getElementById("course-unit").value = "";
 }
 
-// Function to remove a course from the list
 function removeCourse(courseIndex) {
   courses.splice(courseIndex, 1);
   renderCourses();
   saveCourses();
 }
 
-// Function to calculate and display the GPA
 function calculateGPA() {
   if (courses.length === 0) {
     gpaSpan.textContent = "No courses added yet.";
     return;
   }
 
+  const activeScale = GRADE_POINTS[gradingScale];
   let totalQualityPoints = 0;
   let totalUnits = 0;
+
   for (const course of courses) {
-    switch (course.grade) {
-      case "A":
-        totalQualityPoints += 5 * course.unit;
-        break;
-      case "B":
-        totalQualityPoints += 4 * course.unit;
-        break;
-      case "C":
-        totalQualityPoints += 3 * course.unit;
-        break;
-      case "D":
-        totalQualityPoints += 2 * course.unit;
-        break;
-      case "E":
-        totalQualityPoints += 1 * course.unit;
-        break;
-      default:
-        totalQualityPoints += 0;
-    }
+    const gradePoint = activeScale[course.grade] ?? 0;
+    totalQualityPoints += gradePoint * course.unit;
     totalUnits += course.unit;
   }
 
@@ -87,18 +131,17 @@ function calculateGPA() {
   gpaSpan.textContent = gpa.toFixed(2);
 }
 
-// Function to render the list of courses
 function renderCourses() {
-  courseList.innerHTML = ""; // Clear existing list items
+  courseList.innerHTML = "";
 
-  for (let i = 0; i < courses.length; i++) {
+  for (let i = 0; i < courses.length; i += 1) {
     const course = courses[i];
     const listItem = document.createElement("li");
     listItem.textContent = `${course.name} - ${course.grade} (${course.unit} units)`;
 
     const removeSpan = document.createElement("span");
     removeSpan.classList.add("remove");
-    removeSpan.textContent = "❌";
+    removeSpan.textContent = "X";
     removeSpan.addEventListener("click", () => removeCourse(i));
 
     listItem.appendChild(removeSpan);
@@ -108,10 +151,17 @@ function renderCourses() {
   calculateGPA();
 }
 
-// Function to save courses to cookies
-function saveCourses() {
-  const coursesJson = JSON.stringify(courses);
-  document.cookie = `courses=${coursesJson}`;
+function handleScaleChange() {
+  gradingScale = gradingScaleSelect.value;
+  updateScaleDescription();
+  calculateGPA();
+  saveCourses();
 }
 
+loadSavedData();
+gradingScaleSelect.value = gradingScale;
+updateScaleDescription();
+renderCourses();
+
 courseForm.addEventListener("submit", addCourse);
+gradingScaleSelect.addEventListener("change", handleScaleChange);
